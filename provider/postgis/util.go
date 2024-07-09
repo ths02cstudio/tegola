@@ -287,15 +287,29 @@ func decipherFields(ctx context.Context, geomFieldname, idFieldname string, desc
 			switch vex := values[i].(type) {
 			case map[string]pgtype.Text:
 				for k, v := range vex {
-					// we need to check if the key already exists. if it does, then don't overwrite it
-					if _, ok := tags[k]; !ok {
-						tags[k] = v.String
+					if strings.EqualFold("other_tags", k) {
+						hstore, err := pgtype.ParseHStoreText([]byte(v.String))
+						if err != nil {
+							return 0, nil, nil, err
+						}
+						for k, v := range hstore.Map {
+							if _, ok := tags[k]; !ok {
+								tags[k] = v.String
+							}
+						}
+
+					} else {
+						// we need to check if the key already exists. if it does, then don't overwrite it
+						if _, ok := tags[k]; !ok {
+							tags[k] = v.String
+						}
 					}
 				}
 			case pgtype.Numeric:
 				var num float64
 				vex.AssignTo(&num)
 				tags[descName] = num
+
 			default:
 				value, err := transformVal(pgtype.OID(desc.DataTypeOID), values[i])
 				if err != nil {

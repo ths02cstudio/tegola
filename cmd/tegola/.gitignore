@@ -1,5 +1,6 @@
 *.toml
 tegola
+tegola.exe
 static/debug
 static/landuse2
 *.log

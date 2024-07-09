@@ -892,6 +892,7 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 		}
 
 		gid, geobytes, tags, err := decipherFields(ctx, plyr.GeomFieldName(), plyr.IDFieldName(), fdescs, vals)
+
 		if err := ctxErr(ctx, err); err != nil {
 			return fmt.Errorf("for layer (%v) %w", plyr.Name(), err)
 		}
@@ -994,6 +995,40 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 	}
 	subsqls := strings.Join(sqls, "||")
 	fsql := fmt.Sprintf(`SELECT (%s) AS data`, subsqls)
+
+	// select
+	// ((
+	// select
+	// 	ST_AsMVT(q,
+	// 	'areas_polygon',
+	// 	4096,
+	// 	'wkb_geometry',
+	// 	'ogc_fid') as data
+	// from
+	// 	(
+	// 	select
+	// 		ST_AsMVTGeom(wkb_geometry,
+	// 		ST_MakeEnvelope(139.21874998,
+	// 		35.46066995,
+	// 		140.62499998,
+	// 		36.59788913,
+	// 		4326)) as wkb_geometry,
+	// 		ogc_fid,
+	// 		area_code,
+	// 		other_tags->'_sbw_code' as _sbw_code,
+	// 		other_tags->'_sbw_uuid' as _sbw_uuid
+	// 	from
+	// 		d_areas
+	// 	where
+	// 		wkb_geometry && ST_MakeEnvelope(139.21874998,
+	// 		35.46066995,
+	// 		140.62499998,
+	// 		36.59788913,
+	// 		4326)
+	// 		and created_at > '2024-07-02T09:00:00Z'
+	// 		and created_at < '2024-07-02T09:30:00Z'
+	// 		and deleted_at is null
+	// 		and geometric_type = 'Polygon') as q)) as data
 	var data pgtype.Bytea
 	if debugExecuteSQL {
 		log.Debugf("%s:%s: %v", EnvSQLDebugName, EnvSQLDebugExecute, fsql)
