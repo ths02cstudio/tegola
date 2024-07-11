@@ -37,6 +37,8 @@ func init() {
 type HandleMapLayerZXY struct {
 	// required
 	mapName string
+	// required
+	version string
 	// optional
 	layerName string
 	// zoom
@@ -62,6 +64,7 @@ func (req *HandleMapLayerZXY) parseURI(r *http.Request) error {
 
 	// set map name
 	req.mapName = params["map_name"]
+	req.version = params["version"]
 	req.layerName = params["layer_name"]
 
 	var placeholder uint64
@@ -148,7 +151,7 @@ func (req HandleMapLayerZXY) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if req.layerName != "" {
 		m = m.FilterLayersByName(req.layerName)
 		if len(m.Layers) == 0 {
-			msg := fmt.Sprintf("map (%v) has no layers, for LayerName %v at zoom %v", req.mapName, req.layerName, req.z)
+			msg := fmt.Sprintf("map (%v) has no layers, for LayerName %v at zoom %v and version %v", req.mapName, req.layerName, req.z, req.version)
 			log.Debug(msg)
 			http.Error(w, msg, http.StatusNotFound)
 			return
@@ -201,7 +204,11 @@ func (req HandleMapLayerZXY) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	encodeCtx := context.WithValue(r.Context(), observability.ObserveVarMapName, m.Name)
+	ctxVals := make(map[string]any)
+	ctxVals[observability.ObserveVarMapName] = m.Name
+	ctxVals[observability.ObserveVarVersion] = req.version
+
+	encodeCtx := context.WithValues(r.Context(), ctxVals)
 	pbyte, err := m.Encode(encodeCtx, tile, params)
 
 	if err != nil {

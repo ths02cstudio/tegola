@@ -25,4 +25,5 @@ $scope = "Process"
 [Environment]::SetEnvironmentVariable("REDIS_PASSWORD", $REDIS_PASSWORD, $scope)
 [Environment]::SetEnvironmentVariable("TEGOLA_SQL_DEBUG", $TEGOLA_SQL_DEBUG, $scope)
 
+.\tegola.exe cache purge --config config.toml
 .\tegola.exe serve --log-level DEBUG --config config.toml 

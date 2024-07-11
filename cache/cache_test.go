@@ -13,16 +13,18 @@ func TestParseKey(t *testing.T) {
 		expected *cache.Key
 	}{
 		{
-			input: "/12/11/123",
+			input: "/v1/12/11/123",
 			expected: &cache.Key{
-				Z: 12,
-				X: 11,
-				Y: 123,
+				Version: "v1",
+				Z:       12,
+				X:       11,
+				Y:       123,
 			},
 		},
 		{
-			input: "/osm/12/11/123",
+			input: "/osm/v1/12/11/123",
 			expected: &cache.Key{
+				Version: "v1",
 				Z:       12,
 				X:       11,
 				Y:       123,
@@ -30,8 +32,9 @@ func TestParseKey(t *testing.T) {
 			},
 		},
 		{
-			input: "/osm/buildings/12/11/123",
+			input: "/osm/buildings/v1/12/11/123",
 			expected: &cache.Key{
+				Version:   "v1",
 				Z:         12,
 				X:         11,
 				Y:         123,

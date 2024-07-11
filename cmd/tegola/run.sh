@@ -1,14 +1,13 @@
-#!/usr/bin/bash
+export DB_HOST="127.0.0.1"
+export DB_PORT=5432
+export DB_NAME="sobo"
+export DB_USER="postgres"
+export DB_PASSWORD="postgres"
+export TEGOLA_POSTGIS_SSL="disable"
+export TEGOLA_REDIS_SSL="false"
+export REDIS_HOST="127.0.0.1:6379"
+export REDIS_PASSWORD=""
+export TEGOLA_SQL_DEBUG="LAYER_SQL"
 
-export DB_HOST = "127.0.0.1"
-export DB_PORT = 5432
-export DB_NAME = "bonn"
-export DB_USER = "postgres"
-export DB_PASSWORD = "postgres"
-export TEGOLA_POSTGIS_SSL = "disable"
-export TEGOLA_REDIS_SSL = "false"
-export REDIS_HOST = "127.0.0.1:6379"
-export REDIS_PASSWORD = ""
-export TEGOLA_SQL_DEBUG = "LAYER_SQL"
-
-./tegola serve --config config.toml --log-level TRACE
+./tegola cache purge --config config.toml
+./tegola serve --config config.toml --log-level DEBUG

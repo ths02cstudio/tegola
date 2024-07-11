@@ -39,8 +39,8 @@ func ParseKey(str string) (*Key, error) {
 	// remove the base-path and the first slash, then split the parts
 	keyParts := strings.Split(strings.TrimLeft(str, "/"), "/")
 
-	// we're expecting a z/x/y scheme
-	if len(keyParts) < 3 || len(keyParts) > 5 {
+	// we're expecting a v/z/x/y scheme
+	if len(keyParts) < 4 || len(keyParts) > 6 {
 		err = ErrInvalidFileKeyParts{
 			path:          str,
 			keyPartsCount: len(keyParts),
@@ -53,15 +53,18 @@ func ParseKey(str string) (*Key, error) {
 	var zxy []string
 
 	switch len(keyParts) {
-	case 5: // map, layer, z, x, y
+	case 6: // map, layer, version, z, x, y
 		key.MapName = keyParts[0]
 		key.LayerName = keyParts[1]
-		zxy = keyParts[2:]
-	case 4: // map, z, x, y
+		key.Version = keyParts[2]
+		zxy = keyParts[3:]
+	case 5: // map, version, z, x, y
 		key.MapName = keyParts[0]
+		key.Version = keyParts[1]
+		zxy = keyParts[2:]
+	case 4: // version, z, x, y
+		key.Version = keyParts[0]
 		zxy = keyParts[1:]
-	case 3: // z, x, y
-		zxy = keyParts
 	}
 
 	// parse our URL vals into integers
@@ -116,6 +119,7 @@ func ParseKey(str string) (*Key, error) {
 type Key struct {
 	MapName   string
 	LayerName string
+	Version   string
 	Z         uint
 	X         uint
 	Y         uint
@@ -125,9 +129,11 @@ func (k Key) String() string {
 	return filepath.Join(
 		k.MapName,
 		k.LayerName,
+		k.Version,
 		strconv.FormatUint(uint64(k.Z), 10),
 		strconv.FormatUint(uint64(k.X), 10),
-		strconv.FormatUint(uint64(k.Y), 10))
+		strconv.FormatUint(uint64(k.Y), 10),
+	)
 }
 
 // InitFunc initialize a cache given a config map.

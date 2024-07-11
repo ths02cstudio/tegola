@@ -103,6 +103,8 @@ func (co *cache) labels(cmd string, key *tegolaCache.Key) (lbs prometheus.Labels
 		switch keyName {
 		case observability.ObserveVarMapName:
 			lbs["map_name"] = key.MapName
+		case observability.ObserveVarVersion:
+			lbs["version"] = key.Version
 		case observability.ObserveVarLayerName:
 			lbs["layer_name"] = key.LayerName
 		case observability.ObserveVarTileX:

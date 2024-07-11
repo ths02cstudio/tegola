@@ -384,6 +384,7 @@ func BuildDBConfig(opts *DBConfigOptions) (*pgxpool.Config, error) {
 //			srid (int): [Optional] the SRID of the layer. Supports 3857 (WebMercator) or 4326 (WGS84).
 //			sql (string): [*Required] custom SQL to use use. Required if tablename is not defined. Supports the following tokens:
 func CreateProvider(config dict.Dicter, maps []provider.Map, providerType string) (*Provider, error) {
+
 	uri, params, err := BuildURI(config)
 	if err != nil {
 		return nil, err
@@ -940,6 +941,7 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 		err     error
 		sqls    = make([]string, 0, len(layers))
 		mapName string
+		version string
 	)
 
 	{
@@ -947,6 +949,14 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 		if mapNameVal != nil {
 			// if it's not convertible to a string, we will ignore it.
 			mapName, _ = mapNameVal.(string)
+		}
+	}
+
+	{
+		versionVal := ctx.Value(observability.ObserveVarVersion)
+		if versionVal != nil {
+			// if it's not convertible to a string, we will ignore it.
+			version, _ = versionVal.(string)
 		}
 	}
 
@@ -972,6 +982,7 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 
 		// replace configured query parameters if any
 		sql = params.ReplaceParams(sql, &args)
+		sql = fmt.Sprintf(`%s and version = '%s'`, sql, version)
 
 		// ref: https://postgis.net/docs/ST_AsMVT.html
 		// bytea ST_AsMVT(any_element row, text name, integer extent, text geom_name, text feature_id_name)

@@ -307,12 +307,13 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	if len(mapsWithCustomParams) > 0 {
-		log.Infof(
-			"Caching is disabled for these maps, since they have configured custom parameters: %s",
-			strings.Join(mapsWithCustomParams, ", "),
-		)
-	}
+	// do not print this message
+	// if len(mapsWithCustomParams) > 0 {
+	// log.Infof(
+	// 	"Caching is disabled for these maps, since they have configured custom parameters: %s",
+	// 	strings.Join(mapsWithCustomParams, ", "),
+	// )
+	// }
 
 	// check for blacklisted headers
 	for k := range c.Webserver.Headers {

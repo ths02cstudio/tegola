@@ -22,17 +22,18 @@ func TileCacheHandler(a *atlas.Atlas, next http.Handler) http.Handler {
 
 		// check if a cache backend exists
 		cacher := a.GetCache()
+
 		if cacher == nil {
 			// nope. move on
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// ignore requests with query parameters
-		if r.URL.RawQuery != "" {
-			next.ServeHTTP(w, r)
-			return
-		}
+		// // ignore requests with query parameters
+		// if r.URL.RawQuery != "" {
+		// 	next.ServeHTTP(w, r)
+		// 	return
+		// }
 
 		// parse our URI into a cache key structure (remove any configured URIPrefix + "maps/" )
 		key, err := cache.ParseKey(strings.TrimPrefix(r.URL.Path, path.Join(URIPrefix, "maps")))
@@ -42,6 +43,7 @@ func TileCacheHandler(a *atlas.Atlas, next http.Handler) http.Handler {
 			return
 		}
 
+		log.Warnf("[==] key = %v", key.String())
 		// use the URL path as the key
 		cachedTile, hit, err := cacher.Get(key)
 		if err != nil {
