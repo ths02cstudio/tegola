@@ -938,10 +938,13 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 
 func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params provider.Params, layers []provider.Layer) ([]byte, error) {
 	var (
-		err     error
-		sqls    = make([]string, 0, len(layers))
-		mapName string
-		version string
+		err       error
+		sqls      = make([]string, 0, len(layers))
+		mapName   string
+		version   string
+		startTime time.Time
+		endTime   time.Time
+		timeFmt   string = "2006-01-02T15:04:05Z"
 	)
 
 	{
@@ -957,6 +960,41 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 		if versionVal != nil {
 			// if it's not convertible to a string, we will ignore it.
 			version, _ = versionVal.(string)
+		}
+	}
+
+	{
+		startTimeVal := ctx.Value(observability.ObserveVarStartTime)
+		if startTimeVal != "" {
+			// if it's not convertible to a Time, we will ignore it.
+			startTimeStr, _ := startTimeVal.(string)
+			st, _ := strconv.ParseInt(startTimeStr, 10, 64)
+
+			switch len(startTimeStr) {
+			case 13: // milliseconds
+				startTime = time.UnixMilli(st)
+			case 10: // seconds
+				startTime = time.Unix(st, 0)
+			default:
+				break
+			}
+		}
+	}
+
+	{
+		endTimeVal := ctx.Value(observability.ObserveVarEndTime)
+		if endTimeVal != "" {
+			// if it's not convertible to a Time, we will ignore it.
+			endTimeStr, _ := endTimeVal.(string)
+			et, _ := strconv.ParseInt(endTimeStr, 10, 64)
+			switch len(endTimeStr) {
+			case 13: // milliseconds
+				endTime = time.UnixMilli(et)
+			case 10: // seconds
+				endTime = time.Unix(et, 0)
+			default:
+				break
+			}
 		}
 	}
 
@@ -983,6 +1021,13 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 		// replace configured query parameters if any
 		sql = params.ReplaceParams(sql, &args)
 		sql = fmt.Sprintf(`%s and version = '%s'`, sql, version)
+		if !startTime.IsZero() {
+			sql = fmt.Sprintf(`%s and created_at >= '%s'`, sql, startTime.UTC().Format(timeFmt))
+		}
+
+		if !endTime.IsZero() {
+			sql = fmt.Sprintf(`%s and created_at < '%s'`, sql, endTime.UTC().Format(timeFmt))
+		}
 
 		// ref: https://postgis.net/docs/ST_AsMVT.html
 		// bytea ST_AsMVT(any_element row, text name, integer extent, text geom_name, text feature_id_name)

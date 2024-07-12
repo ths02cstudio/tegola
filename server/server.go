@@ -91,6 +91,8 @@ func NewRouter(a *atlas.Atlas) *httptreemux.TreeMux {
 	hMapLayerZXY := HandleMapLayerZXY{Atlas: a}
 	group.UsingContext().Handler(observability.InstrumentAPIHandler(http.MethodGet, "/maps/:map_name/:version/:z/:x/:y", o, HeadersHandler(GZipHandler(TileCacheHandler(a, hMapLayerZXY)))))
 	group.UsingContext().Handler(observability.InstrumentAPIHandler(http.MethodGet, "/maps/:map_name/:layer_name/:version/:z/:x/:y", o, HeadersHandler(GZipHandler(TileCacheHandler(a, hMapLayerZXY)))))
+	group.UsingContext().Handler(observability.InstrumentAPIHandler(http.MethodGet, "/maps/:map_name/:version/:start_time/:end_time/:z/:x/:y", o, HeadersHandler(GZipHandler(TileCacheHandler(a, hMapLayerZXY)))))
+	group.UsingContext().Handler(observability.InstrumentAPIHandler(http.MethodGet, "/maps/:map_name/:layer_name/:version/:start_time/:end_time/:z/:x/:y", o, HeadersHandler(GZipHandler(TileCacheHandler(a, hMapLayerZXY)))))
 
 	// map style
 	group.UsingContext().Handler(observability.InstrumentAPIHandler(http.MethodGet, "/maps/:map_name/style.json", o, HeadersHandler(HandleMapStyle{})))

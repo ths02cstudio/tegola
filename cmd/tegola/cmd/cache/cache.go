@@ -166,8 +166,8 @@ func doWork(ctx context.Context, tileChannel *TileChannel, maps []atlas.Map, con
 		if m.Params != nil || len(m.Params) > 0 {
 			log.Warnf("caching is disabled for map %s as it has custom parameters configures", m.Name)
 		}
-		// allow caching anyway
-		// nonParamMaps = append(nonParamMaps, m)
+		// disable cache
+		nonParamMaps = append(nonParamMaps, m)
 	}
 
 	// run through the incoming tiles, and generate the mapTiles as needed.

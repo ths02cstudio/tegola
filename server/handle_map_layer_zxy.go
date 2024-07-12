@@ -41,6 +41,10 @@ type HandleMapLayerZXY struct {
 	version string
 	// optional
 	layerName string
+	// optional
+	startTime string
+	// optional
+	endTime string
 	// zoom
 	z uint
 	// row
@@ -66,6 +70,8 @@ func (req *HandleMapLayerZXY) parseURI(r *http.Request) error {
 	req.mapName = params["map_name"]
 	req.version = params["version"]
 	req.layerName = params["layer_name"]
+	req.startTime = params["start_time"]
+	req.endTime = params["end_time"]
 
 	var placeholder uint64
 
@@ -207,6 +213,8 @@ func (req HandleMapLayerZXY) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctxVals := make(map[string]any)
 	ctxVals[observability.ObserveVarMapName] = m.Name
 	ctxVals[observability.ObserveVarVersion] = req.version
+	ctxVals[observability.ObserveVarStartTime] = req.startTime
+	ctxVals[observability.ObserveVarEndTime] = req.endTime
 
 	encodeCtx := context.WithValues(r.Context(), ctxVals)
 	pbyte, err := m.Encode(encodeCtx, tile, params)
