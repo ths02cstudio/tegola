@@ -40,7 +40,7 @@ func ParseKey(str string) (*Key, error) {
 	keyParts := strings.Split(strings.TrimLeft(str, "/"), "/")
 
 	// we're expecting a v/z/x/y scheme
-	if len(keyParts) < 4 || len(keyParts) > 9 {
+	if len(keyParts) < 5 || len(keyParts) > 6 {
 		err = ErrInvalidFileKeyParts{
 			path:          str,
 			keyPartsCount: len(keyParts),
@@ -53,19 +53,6 @@ func ParseKey(str string) (*Key, error) {
 	var zxy []string
 
 	switch len(keyParts) {
-	case 8: // map, layer, version, start, end, z, x, y
-		key.MapName = keyParts[0]
-		key.LayerName = keyParts[1]
-		key.Version = keyParts[2]
-		key.StartTime = keyParts[3]
-		key.EndTime = keyParts[4]
-		zxy = keyParts[5:]
-	case 7: // map, version, start, end, z, x, y
-		key.MapName = keyParts[0]
-		key.Version = keyParts[1]
-		key.StartTime = keyParts[2]
-		key.EndTime = keyParts[3]
-		zxy = keyParts[4:]
 	case 6: // map, layer, version, z, x, y
 		key.MapName = keyParts[0]
 		key.LayerName = keyParts[1]
@@ -130,8 +117,6 @@ type Key struct {
 	MapName   string
 	LayerName string
 	Version   string
-	StartTime string
-	EndTime   string
 	Z         uint
 	X         uint
 	Y         uint
@@ -142,8 +127,6 @@ func (k Key) String() string {
 		k.MapName,
 		k.LayerName,
 		k.Version,
-		k.StartTime,
-		k.EndTime,
 		strconv.FormatUint(uint64(k.Z), 10),
 		strconv.FormatUint(uint64(k.X), 10),
 		strconv.FormatUint(uint64(k.Y), 10),

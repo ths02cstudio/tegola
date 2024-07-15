@@ -43,7 +43,6 @@ func TileCacheHandler(a *atlas.Atlas, next http.Handler) http.Handler {
 			return
 		}
 
-		log.Warnf("[==] key = %v", key.String())
 		// use the URL path as the key
 		cachedTile, hit, err := cacher.Get(key)
 		if err != nil {

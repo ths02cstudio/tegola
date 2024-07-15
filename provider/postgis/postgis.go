@@ -936,15 +936,15 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 	return rows.Err()
 }
 
+const QUERY_SQL = `(select ma.ogc_fid, ma.wkb_geometry::geometry, ma."geometric_type", ma.area_code, ma."properties", ma.other_tags, cat.ext_properties, cat.ext_tags, cat.created_at from ( select * from ( select *, ROW_NUMBER() OVER ( PARTITION BY ca.ogc_fid order by ca.created_at desc ) AS rn from c_areas ca, ( select start_time, end_time from public.v_areas where {} ) as va where ca.created_at >= va.start_time and ca.created_at <= va.end_time ) as cas where cas.rn = 1 ) as cat inner join public.m_areas ma on ma.ogc_fid = cat.ogc_fid)`
+
 func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params provider.Params, layers []provider.Layer) ([]byte, error) {
 	var (
 		err       error
 		sqls      = make([]string, 0, len(layers))
 		mapName   string
+		layerName string
 		version   string
-		startTime time.Time
-		endTime   time.Time
-		timeFmt   string = "2006-01-02T15:04:05Z"
 	)
 
 	{
@@ -956,45 +956,18 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 	}
 
 	{
+		layerNameVal := ctx.Value(observability.ObserveVarLayerName)
+		if layerNameVal != nil {
+			// if it's not convertible to a string, we will ignore it.
+			layerName, _ = layerNameVal.(string)
+		}
+	}
+
+	{
 		versionVal := ctx.Value(observability.ObserveVarVersion)
 		if versionVal != nil {
 			// if it's not convertible to a string, we will ignore it.
 			version, _ = versionVal.(string)
-		}
-	}
-
-	{
-		startTimeVal := ctx.Value(observability.ObserveVarStartTime)
-		if startTimeVal != "" {
-			// if it's not convertible to a Time, we will ignore it.
-			startTimeStr, _ := startTimeVal.(string)
-			st, _ := strconv.ParseInt(startTimeStr, 10, 64)
-
-			switch len(startTimeStr) {
-			case 13: // milliseconds
-				startTime = time.UnixMilli(st)
-			case 10: // seconds
-				startTime = time.Unix(st, 0)
-			default:
-				break
-			}
-		}
-	}
-
-	{
-		endTimeVal := ctx.Value(observability.ObserveVarEndTime)
-		if endTimeVal != "" {
-			// if it's not convertible to a Time, we will ignore it.
-			endTimeStr, _ := endTimeVal.(string)
-			et, _ := strconv.ParseInt(endTimeStr, 10, 64)
-			switch len(endTimeStr) {
-			case 13: // milliseconds
-				endTime = time.UnixMilli(et)
-			case 10: // seconds
-				endTime = time.Unix(et, 0)
-			default:
-				break
-			}
 		}
 	}
 
@@ -1020,14 +993,18 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 
 		// replace configured query parameters if any
 		sql = params.ReplaceParams(sql, &args)
-		sql = fmt.Sprintf(`%s and version = '%s'`, sql, version)
-		if !startTime.IsZero() {
-			sql = fmt.Sprintf(`%s and created_at >= '%s'`, sql, startTime.UTC().Format(timeFmt))
+
+		var condition string
+		if version != "" {
+			condition += fmt.Sprintf(" version = '%s' ", version)
+		}
+		if layerName != "" {
+			condition += fmt.Sprintf(" and layer_name = '%s' ", layerName)
 		}
 
-		if !endTime.IsZero() {
-			sql = fmt.Sprintf(`%s and created_at < '%s'`, sql, endTime.UTC().Format(timeFmt))
-		}
+		inner_sql := strings.Replace(QUERY_SQL, "{}", condition, -1)
+
+		sql = strings.Replace(sql, "{}", inner_sql, -1)
 
 		// ref: https://postgis.net/docs/ST_AsMVT.html
 		// bytea ST_AsMVT(any_element row, text name, integer extent, text geom_name, text feature_id_name)
@@ -1052,39 +1029,6 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 	subsqls := strings.Join(sqls, "||")
 	fsql := fmt.Sprintf(`SELECT (%s) AS data`, subsqls)
 
-	// select
-	// ((
-	// select
-	// 	ST_AsMVT(q,
-	// 	'areas_polygon',
-	// 	4096,
-	// 	'wkb_geometry',
-	// 	'ogc_fid') as data
-	// from
-	// 	(
-	// 	select
-	// 		ST_AsMVTGeom(wkb_geometry,
-	// 		ST_MakeEnvelope(139.21874998,
-	// 		35.46066995,
-	// 		140.62499998,
-	// 		36.59788913,
-	// 		4326)) as wkb_geometry,
-	// 		ogc_fid,
-	// 		area_code,
-	// 		other_tags->'_sbw_code' as _sbw_code,
-	// 		other_tags->'_sbw_uuid' as _sbw_uuid
-	// 	from
-	// 		d_areas
-	// 	where
-	// 		wkb_geometry && ST_MakeEnvelope(139.21874998,
-	// 		35.46066995,
-	// 		140.62499998,
-	// 		36.59788913,
-	// 		4326)
-	// 		and created_at > '2024-07-02T09:00:00Z'
-	// 		and created_at < '2024-07-02T09:30:00Z'
-	// 		and deleted_at is null
-	// 		and geometric_type = 'Polygon') as q)) as data
 	var data pgtype.Bytea
 	if debugExecuteSQL {
 		log.Debugf("%s:%s: %v", EnvSQLDebugName, EnvSQLDebugExecute, fsql)

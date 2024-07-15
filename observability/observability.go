@@ -16,8 +16,6 @@ const (
 	ObserveVarMapName   = ":map_name"
 	ObserveVarLayerName = ":layer_name"
 	ObserveVarVersion   = ":version"
-	ObserveVarStartTime = ":start_time"
-	ObserveVarEndTime   = ":end_time"
 	ObserveVarTileX     = ":x"
 	ObserveVarTileY     = ":y"
 	ObserveVarTileZ     = ":z"
@@ -187,10 +185,6 @@ func LabelForObserveVar(key string) string {
 		return "layer_name"
 	case ObserveVarVersion:
 		return "version"
-	case ObserveVarStartTime:
-		return "start_time"
-	case ObserveVarEndTime:
-		return "end_time"
 	case ObserveVarTileX:
 		return "x"
 	case ObserveVarTileY:
