@@ -1,9 +1,24 @@
 CREATE TABLE
+    public.m_areas (
+        ogc_fid bigserial NOT NULL,
+        wkb_geometry public.geometry NOT NULL,
+        "geometric_type" public."geometric_type" NOT NULL,
+        area_code varchar NULL,
+        properties text NULL,
+        other_tags public."hstore" NULL,
+        created_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
+        updated_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
+        deleted_at timestamptz NULL
+    );
+
+CREATE TABLE
     public.v_areas (
         "version" VARCHAR NOT NULL PRIMARY KEY,
         layer_name VARCHAR NOT NULL,
         start_time TIMESTAMPTZ NOT NULL,
         end_time TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NULL,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NULL,
         deleted_at TIMESTAMPTZ NULL
     );
 
