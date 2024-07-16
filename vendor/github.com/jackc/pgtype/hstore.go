@@ -251,28 +251,6 @@ func (src Hstore) EncodeBinary(ci *ConnInfo, buf []byte) ([]byte, error) {
 	return buf, err
 }
 
-func ParseHStoreText(src []byte) (*Hstore, error) {
-	var dst Hstore
-	if src == nil {
-		dst = Hstore{Status: Null}
-		err := fmt.Errorf("source string of hstore is nil")
-		return nil, err
-	}
-
-	keys, values, err := parseHstore(string(src))
-	if err != nil {
-		return nil, err
-	}
-
-	m := make(map[string]Text, len(keys))
-	for i := range keys {
-		m[keys[i]] = values[i]
-	}
-
-	dst = Hstore{Map: m, Status: Present}
-	return &dst, nil
-}
-
 var quoteHstoreReplacer = strings.NewReplacer(`\`, `\\`, `"`, `\"`)
 
 func quoteHstoreElement(src string) string {

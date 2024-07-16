@@ -7,7 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/SAP/go-hdb/driver/internal/errors"
+	"github.com/SAP/go-hdb/driver/internal/assert"
 	"golang.org/x/text/transform"
 )
 
@@ -44,9 +44,6 @@ func (e *DecodeError) Pos() int { return e.p }
 // Value returns the value which should be decoded.
 func (e *DecodeError) Value() []byte { return e.v }
 
-// Is returns true on the target driver errors.Fatal, false otherwise.
-func (e *DecodeError) Is(target error) bool { return target == errors.ErrFatal }
-
 // Encoder supports encoding of UTF-8 encoded data into CESU-8.
 type Encoder struct {
 	transform.NopResetter
@@ -74,7 +71,7 @@ func (e *Encoder) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, err er
 		}
 		// check if additional bytes needed (ErrShortSrc) only
 		// - if further bytes are potentially available (!atEOF) and
-		// - remaining buffer smaller than max size for an ecoded UTF-8 rune
+		// - remaining buffer smaller than max size for an encoded UTF-8 rune
 		if !atEOF && len(src[i:]) < utf8.UTFMax {
 			if !utf8.FullRune(src[i:]) {
 				return j, i, transform.ErrShortSrc
@@ -94,7 +91,7 @@ func (e *Encoder) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, err er
 		m := RuneLen(r)
 		switch {
 		case m == -1:
-			panic("internal UTF-8 to CESU-8 transformation error")
+			assert.Panic("internal UTF-8 to CESU-8 transformation error")
 		case j+m > len(dst):
 			return j, i, transform.ErrShortDst
 		}
@@ -132,7 +129,7 @@ func (d *Decoder) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, err er
 		}
 		// check if additional bytes needed (ErrShortSrc) only
 		// - if further bytes are potentially available (!atEOF) and
-		// - remaining buffer smaller than max size for an ecoded CESU-8 rune
+		// - remaining buffer smaller than max size for an encoded CESU-8 rune
 		if !atEOF && len(src[i:]) < CESUMax {
 			if !FullRune(src[i:]) {
 				return j, i, transform.ErrShortSrc
@@ -152,7 +149,7 @@ func (d *Decoder) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, err er
 		m := utf8.RuneLen(r)
 		switch {
 		case m == -1:
-			panic("internal CESU-8 to UTF-8 transformation error")
+			assert.Panic("internal CESU-8 to UTF-8 transformation error")
 		case j+m > len(dst):
 			return j, i, transform.ErrShortDst
 		}

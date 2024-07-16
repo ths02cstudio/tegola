@@ -95,6 +95,9 @@ func NewRouter(a *atlas.Atlas) *httptreemux.TreeMux {
 	// map style
 	group.UsingContext().Handler(observability.InstrumentAPIHandler(http.MethodGet, "/maps/:map_name/style.json", o, HeadersHandler(HandleMapStyle{})))
 
+	// postgres api
+	group.UsingContext().Handler(observability.InstrumentAPIHandler(http.MethodPost, "/api/version", o, HeadersHandler(HandlePostLayers{})))
+
 	// setup viewer routes, which can be excluded via build flags
 	setupViewer(o, group)
 

@@ -3,6 +3,7 @@ package protocol
 import (
 	"fmt"
 
+	"github.com/SAP/go-hdb/driver/internal/assert"
 	"github.com/SAP/go-hdb/driver/internal/protocol/encoding"
 )
 
@@ -65,8 +66,8 @@ func (_optTinyintType) size(any) int   { return encoding.TinyintFieldSize }
 func (_optIntegerType) size(any) int   { return encoding.IntegerFieldSize }
 func (_optBigintType) size(any) int    { return encoding.BigintFieldSize }
 func (_optDoubleType) size(any) int    { return encoding.DoubleFieldSize }
-func (_optStringType) size(v any) int  { return 2 + len(v.(string)) } //length int16 + string length
-func (_optBstringType) size(v any) int { return 2 + len(v.([]byte)) } //length int16 + bytes length
+func (_optStringType) size(v any) int  { return 2 + len(v.(string)) } // length int16 + string length
+func (_optBstringType) size(v any) int { return 2 + len(v.([]byte)) } // length int16 + bytes length
 
 func (_optBooleanType) encode(e *encoding.Encoder, v any) { e.Bool(v.(bool)) }
 func (_optTinyintType) encode(e *encoding.Encoder, v any) { e.Int8(v.(int8)) }
@@ -102,7 +103,7 @@ func (_optBstringType) decode(d *encoding.Decoder) any {
 	return b
 }
 
-func getOptType(v any) optType {
+func optTypeViaType(v any) optType {
 	switch v := v.(type) {
 	case bool:
 		return optBooleanType
@@ -119,6 +120,27 @@ func getOptType(v any) optType {
 	case []byte:
 		return optBstringType
 	default:
-		panic(fmt.Sprintf("type %T not implemented", v)) // should never happen
+		return assert.TPanicf[optType]("type %T not implemented", v) // should never happen
+	}
+}
+
+func optTypeViaTypeCode(tc typeCode) optType {
+	switch tc {
+	case tcBoolean:
+		return optBooleanType
+	case tcTinyint:
+		return optTinyintType
+	case tcInteger:
+		return optIntegerType
+	case tcBigint:
+		return optBigintType
+	case tcDouble:
+		return optDoubleType
+	case tcString:
+		return optStringType
+	case tcBstring:
+		return optBstringType
+	default:
+		return assert.TPanicf[optType]("missing optType for typeCode %s", tc)
 	}
 }

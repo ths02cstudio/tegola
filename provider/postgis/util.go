@@ -2,6 +2,7 @@ package postgis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -287,14 +288,15 @@ func decipherFields(ctx context.Context, geomFieldname, idFieldname string, desc
 			switch vex := values[i].(type) {
 			case map[string]pgtype.Text:
 				for k, v := range vex {
-					if strings.EqualFold("other_tags", k) {
-						hstore, err := pgtype.ParseHStoreText([]byte(v.String))
+					if strings.EqualFold("properties", k) {
+						var hstore map[string]string
+						err := json.Unmarshal([]byte(v.String), &hstore)
 						if err != nil {
 							return 0, nil, nil, err
 						}
-						for k, v := range hstore.Map {
-							if _, ok := tags[k]; !ok {
-								tags[k] = v.String
+						for key, val := range hstore {
+							if _, ok := tags[key]; !ok {
+								tags[key] = val
 							}
 						}
 
