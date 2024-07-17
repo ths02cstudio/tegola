@@ -65,9 +65,9 @@ srid = 4326
   geometry_type= "linestring"
   id_fieldname = "ogc_fid"
   # example: use `hstore_column->key as key` to extract those attributes you need
-  sql = "SELECT ST_AsMVTGeom(wkb_geometry, !BBOX!) AS wkb_geometry, ogc_fid, area_code, other_tags::hstore FROM d_areas WHERE wkb_geometry && !BBOX! !AREA_CODE! !START_TIME! !END_TIME! !DELETED! AND geometric_type = 'Linestring'"
-  #sql = "SELECT ST_AsBinary(wkb_geometry) AS wkb_geometry, ogc_fid, area_code, properties, other_tags FROM d_areas WHERE wkb_geometry && !BBOX! !AREA_CODE! !START_TIME! !END_TIME! !DELETED! AND geometric_type = 'Polygon'"
-
+  # sql = "SELECT ST_AsMVTGeom(wkb_geometry, !BBOX!) AS wkb_geometry, ogc_fid, area_code, other_tags::hstore FROM d_areas WHERE wkb_geometry && !BBOX! !AREA_CODE! !START_TIME! !END_TIME! !DELETED! AND geometric_type = 'Linestring'"
+  # sql = "SELECT ST_AsBinary(wkb_geometry) AS wkb_geometry, ogc_fid, area_code, properties, other_tags FROM d_areas WHERE wkb_geometry && !BBOX! !AREA_CODE! !START_TIME! !END_TIME! !DELETED! AND geometric_type = 'Linestring'"
+  sql = "SELECT ST_AsMVTGeom(res.wkb_geometry, !BBOX!) AS wkb_geometry, res.ogc_fid, res.area_code, res.properties, res.ext_properties FROM {} as res WHERE wkb_geometry && !BBOX! AND geometric_type = 'Linestring'"
   
 [[maps]]
 name = "sobo"
@@ -82,46 +82,46 @@ center = [139.65031060, 35.67619190, 11.0]
   max_zoom = 20
 
 
-  [[maps.params]]
-  name          = "area_code"         # name used in the URL
-  token         = "!AREA_CODE!"       # token to replace in providers.layers.sql query
-  type          = "string"        # one of: int, float, string, bool
-  sql           = "AND area_code = ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
-  # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
-  # either
-  # default_value = ""         # if parameter is not specified, this value will be passed to .sql parameter
-  # or
-  default_sql   = " " 
+  # [[maps.params]]
+  # name          = "area_code"         # name used in the URL
+  # token         = "!AREA_CODE!"       # token to replace in providers.layers.sql query
+  # type          = "string"        # one of: int, float, string, bool
+  # sql           = "AND area_code = ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
+  # # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
+  # # either
+  # # default_value = ""         # if parameter is not specified, this value will be passed to .sql parameter
+  # # or
+  # default_sql   = " " 
 
-  [[maps.params]]
-  name          = "start_time"         # name used in the URL
-  token         = "!START_TIME!"       # token to replace in providers.layers.sql query
-  type          = "string"        # one of: int, float, string, bool
-  sql           = "AND created_at > ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
-  # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
-  # either
-  # default_value = "1970-01-01T00:00:00Z"         # if parameter is not specified, this value will be passed to .sql parameter
-  # or
-  default_sql   = " " 
+  # [[maps.params]]
+  # name          = "start_time"         # name used in the URL
+  # token         = "!START_TIME!"       # token to replace in providers.layers.sql query
+  # type          = "string"        # one of: int, float, string, bool
+  # sql           = "AND created_at > ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
+  # # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
+  # # either
+  # # default_value = "1970-01-01T00:00:00Z"         # if parameter is not specified, this value will be passed to .sql parameter
+  # # or
+  # default_sql   = " " 
 
-  [[maps.params]]
-  name          = "end_time"         # name used in the URL
-  token         = "!END_TIME!"       # token to replace in providers.layers.sql query
-  type          = "string"        # one of: int, float, string, bool
-  sql           = "AND created_at < ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
-  # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
-  # either
-  # default_value = "9999-12-31T23:59:59Z"         # if parameter is not specified, this value will be passed to .sql parameter
-  # or
-  default_sql   = " " 
+  # [[maps.params]]
+  # name          = "end_time"         # name used in the URL
+  # token         = "!END_TIME!"       # token to replace in providers.layers.sql query
+  # type          = "string"        # one of: int, float, string, bool
+  # sql           = "AND created_at < ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
+  # # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
+  # # either
+  # # default_value = "9999-12-31T23:59:59Z"         # if parameter is not specified, this value will be passed to .sql parameter
+  # # or
+  # default_sql   = " " 
 
-  [[maps.params]]
-  name          = "deleted_at"         # name used in the URL
-  token         = "!DELETED!"       # token to replace in providers.layers.sql query
-  type          = "string"        # one of: int, float, string, bool
-  # sql           = "AND deleted_at = ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
-  # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
-  # either
-  # default_value = "9999-12-31T23:59:59Z"         # if parameter is not specified, this value will be passed to .sql parameter
-  # or
-  default_sql   = "AND deleted_at is null" 
+  # [[maps.params]]
+  # name          = "deleted_at"         # name used in the URL
+  # token         = "!DELETED!"       # token to replace in providers.layers.sql query
+  # type          = "string"        # one of: int, float, string, bool
+  # # sql           = "AND deleted_at = ?" # SQL to replace the token in the query. ? will be replaced with a parameter value. If omitted, defaults to "?"
+  # # if neither default_value nor default_sql is specified, the URL parameter is required to be present in all queries
+  # # either
+  # # default_value = "9999-12-31T23:59:59Z"         # if parameter is not specified, this value will be passed to .sql parameter
+  # # or
+  # default_sql   = "AND deleted_at is null" 

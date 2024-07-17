@@ -21,15 +21,15 @@ const (
 )
 
 type MArea struct {
-	ID            uint           `gorm:"primarykey;column:ogc_fid" json:"id"`
+	ID            uint64         `gorm:"primarykey;autoIncrement;column:ogc_fid" json:"id"`
 	Geometry      string         `gorm:"column:wkb_geometry;type:geometry" json:"geometry"`
 	GeometricType GeometricType  `gorm:"column:geometric_type" json:"geometric_type"`
 	AreaCode      string         `gorm:"column:area_code" json:"area_code"`
-	Name          string         `gorm:"column:name" json:"name"`
-	Tags          string         `gorm:"column:tags" json:"tags"`
-	CreatedAt     time.Time      `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt     time.Time      `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `gorm:"index;column:deleted_at" json:"deleted_at"`
+	Properties    string         `gorm:"null;column:properties" json:"properties,omitempty"`
+	Tags          string         `gorm:"null;column:tags" json:"tags,omitempty"`
+	CreatedAt     time.Time      `gorm:"column:created_at" json:"created_at,omitempty"`
+	UpdatedAt     time.Time      `gorm:"autoUpdateTime:milli;column:updated_at" json:"updated_at,omitempty"`
+	DeletedAt     gorm.DeletedAt `gorm:"null;index;column:deleted_at" json:"deleted_at,omitempty"`
 }
 
 func (MArea) TableName() string {

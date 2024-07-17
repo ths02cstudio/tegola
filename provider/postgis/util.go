@@ -288,8 +288,11 @@ func decipherFields(ctx context.Context, geomFieldname, idFieldname string, desc
 			switch vex := values[i].(type) {
 			case map[string]pgtype.Text:
 				for k, v := range vex {
-					if strings.EqualFold("properties", k) {
+					if strings.EqualFold("properties", k) || strings.EqualFold("ext_properties", k) {
 						var hstore map[string]string
+						if v.String == "" {
+							continue
+						}
 						err := json.Unmarshal([]byte(v.String), &hstore)
 						if err != nil {
 							return 0, nil, nil, err

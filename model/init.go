@@ -13,11 +13,11 @@ var PgDb *gorm.DB
 func GetPgDb() (*gorm.DB, error) {
 	if PgDb == nil {
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
-			ttools.GetEnvDefault("PG_DB_HOST", "localhost"),
-			ttools.GetEnvDefault("PG_DB_USER", "postgres"),
-			ttools.GetEnvDefault("PG_DB_PASSWORD", "postgres"),
-			ttools.GetEnvDefault("PG_DB_NAME", "bonn"),
-			ttools.GetEnvDefault("PG_DB_PORT", "5432"),
+			ttools.GetEnvDefault("DB_HOST", "localhost"),
+			ttools.GetEnvDefault("DB_USER", "postgres"),
+			ttools.GetEnvDefault("DB_PASSWORD", "postgres"),
+			ttools.GetEnvDefault("DB_NAME", "sobo"),
+			ttools.GetEnvDefault("DB_PORT", "5432"),
 			ttools.GetEnvDefault("TEGOLA_POSTGIS_SSL", "disable"),
 		)
 
@@ -27,7 +27,7 @@ func GetPgDb() (*gorm.DB, error) {
 			return nil, err
 		}
 
-		// create table
+		// migrate table
 		// db.AutoMigrate(&TLayer{})
 		PgDb = db
 	}

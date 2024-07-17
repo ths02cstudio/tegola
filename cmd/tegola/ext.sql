@@ -1,14 +1,14 @@
 CREATE TABLE
     public.m_areas (
-        ogc_fid bigserial NOT NULL,
+        ogc_fid BIGSERIAL NOT NULL,
         wkb_geometry public.geometry NOT NULL,
         "geometric_type" public."geometric_type" NOT NULL,
-        area_code varchar NULL,
-        properties text NULL,
+        area_code VARCHAR NULL,
+        properties TEXT NULL,
         other_tags public."hstore" NULL,
-        created_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
-        updated_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
-        deleted_at timestamptz NULL
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NULL,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NULL,
+        deleted_at TIMESTAMPTZ NULL
     );
 
 CREATE TABLE
@@ -23,7 +23,7 @@ CREATE TABLE
     );
 
 CREATE TABLE
-    public.c_areas (
+    public.d_areas (
         geom_id BIGSERIAL NOT NULL PRIMARY KEY,
         ogc_fid BIGINT NOT NULL,
         ext_properties VARCHAR NULL,
