@@ -209,7 +209,7 @@ func (req HandleMapLayerZXY) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctxVals[observability.ObserveVarLayerName] = req.layerName
 	ctxVals[observability.ObserveVarVersion] = req.version
 
-	encodeCtx := context.WithValues(r.Context(), ctxVals)
+	encodeCtx := ContextWithValues(r.Context(), ctxVals)
 	pbyte, err := m.Encode(encodeCtx, tile, params)
 
 	if err != nil {

@@ -59,7 +59,7 @@ var (
 	// DefaultCORSHeaders define the default CORS response headers added to all requests
 	DefaultCORSHeaders = map[string]string{
 		"Access-Control-Allow-Origin":  "*",
-		"Access-Control-Allow-Methods": "GET, OPTIONS",
+		"Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
 	}
 )
 
