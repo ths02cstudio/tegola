@@ -68,11 +68,11 @@ func (req HandlePutLayers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
 	}
 
-	var dLayers []model.DArea
+	var dLayers []model.CArea
 	for _, mArea := range mLayers {
 		for _, reqInfo := range req.Layers {
 			if reqInfo.AreaCode == mArea.AreaCode {
-				dLayers = append(dLayers, model.DArea{
+				dLayers = append(dLayers, model.CArea{
 					OgcFid:        mArea.ID,
 					ExtProperties: reqInfo.Properties,
 					ExtTags:       reqInfo.Tags,

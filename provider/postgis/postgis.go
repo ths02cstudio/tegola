@@ -936,7 +936,8 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 	return rows.Err()
 }
 
-const QUERY_SQL = `(select ma.ogc_fid, ma.wkb_geometry::geometry, ma."geometric_type", ma.area_code, ma."properties", ma.other_tags, cat.ext_properties, cat.ext_tags, cat.created_at from ( select * from ( select *, ROW_NUMBER() OVER ( PARTITION BY ca.ogc_fid order by ca.created_at desc ) AS rn from c_areas ca, ( select start_time, end_time from public.v_areas where {} ) as va where ca.created_at >= va.start_time and ca.created_at <= va.end_time ) as cas where cas.rn = 1 ) as cat inner join public.m_areas ma on ma.ogc_fid = cat.ogc_fid)`
+const QUERY_SQL = `(select cat.ogc_fid, cat.wkb_geometry::geometry, cat."geometric_type", cat.area_code, cat."properties", cat.other_tags, cat.created_at from ( select * from ( select *, ROW_NUMBER() OVER ( PARTITION BY ca.ogc_fid order by ca.created_at desc ) AS rn from {#table} ca, ( select start_time, end_time from public.v_areas where {#condition} ) as va where ca.created_at >= va.start_time and ca.created_at <= va.end_time ) as cas where cas.rn = 1 ) as cat)`
+const QUERY_SQL_VERSION = `(select ma.ogc_fid, ma.wkb_geometry::geometry, ma."geometric_type", ma.area_code, ma."properties", ma.other_tags, cat.properties as ext_properties, cat.other_tags as ext_tags, cat.created_at from ( select * from ( select *, ROW_NUMBER() OVER ( PARTITION BY ca.ogc_fid order by ca.created_at desc ) AS rn from {#table} ca, ( select start_time, end_time from public.v_areas where {#condition} ) as va where ca.created_at >= va.start_time and ca.created_at <= va.end_time ) as cas where cas.rn = 1 ) as cat inner join public.m_areas ma on ma.ogc_fid = cat.ogc_fid)`
 
 func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params provider.Params, layers []provider.Layer) ([]byte, error) {
 	var (
@@ -1002,9 +1003,23 @@ func (p Provider) MVTForLayers(ctx context.Context, tile provider.Tile, params p
 			condition += fmt.Sprintf(" and layer_name = '%s' ", layerName)
 		}
 
-		inner_sql := strings.Replace(QUERY_SQL, "{}", condition, -1)
+		tableNameReg := regexp.MustCompile(`\{#.*?\}`)
+		tableNameBytes := tableNameReg.Find([]byte(sql))
+		tableName := string(tableNameBytes[2 : len(tableNameBytes)-1])
 
-		sql = strings.Replace(sql, "{}", inner_sql, -1)
+		var inner_sql string
+		switch tableName {
+		case "d_areas":
+			inner_sql = strings.Replace(QUERY_SQL, "{#condition}", condition, -1)
+		case "c_areas":
+			inner_sql = strings.Replace(QUERY_SQL_VERSION, "{#condition}", condition, -1)
+		default:
+			//todo
+		}
+
+		inner_sql = strings.Replace(inner_sql, "{#table}", tableName, -1)
+
+		sql = tableNameReg.ReplaceAllString(sql, inner_sql)
 
 		// ref: https://postgis.net/docs/ST_AsMVT.html
 		// bytea ST_AsMVT(any_element row, text name, integer extent, text geom_name, text feature_id_name)
